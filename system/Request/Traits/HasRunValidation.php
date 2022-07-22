@@ -21,14 +21,14 @@ trait HasRunValidation
         return false;
     }
 
-    protected function checkFieldExist($name)
+   protected function checkFileExist($name)
     {
-        return isset($this->request[$name]) && !empty($this->request[$name]);
+        return !empty($this->files[$name]["name"]) || !empty($this->request[$name]["name"]);
     }
 
-    protected function checkFileExist($name)
+   protected function checkFileExist($name)
     {
-        return isset($this->files[$name]["name"]) && !empty($this->request[$name]["name"]);
+        return !empty($this->files[$name]["name"]) || !empty($this->request[$name]["name"]);
     }
 
     private function setError($name, $errorMessage, $ruleType = null)
