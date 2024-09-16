@@ -1,0 +1,1018 @@
+#+TITLE: Apantos doc - main
+#+AUTHOR: Ali Shahidi
+#+DESCRIPTION: Apantos document main page
+#+OPTIONS: num:nil ^:{}
+
+
+* TABLE OF CONTENTS :toc:
+- [[#what-is-apantos][What is apantos]]
+- [[#how-create-first-apantos-project][How create first Apantos project]]
+  - [[#set-tokens][Set tokens]]
+- [[#what-is-framework-architecture-][What is framework architecture ?]]
+- [[#directory-structure][Directory Structure]]
+- [[#directory-explanation][Directory explanation]]
+  - [[#app][app]]
+  - [[#bootstrap][bootstrap]]
+  - [[#public][public]]
+  - [[#resources][resources]]
+  - [[#routes][routes]]
+  - [[#storage][storage]]
+  - [[#system][system]]
+- [[#routing-system][Routing system]]
+  - [[#how-create-route][How create route]]
+- [[#controllers][Controllers]]
+- [[#model][Model]]
+- [[#orm][Orm]]
+  - [[#example-tables][Example tables]]
+  - [[#create][create]]
+  - [[#update][update]]
+  - [[#delete][delete]]
+  - [[#all][all]]
+  - [[#find][find]]
+  - [[#where][where]]
+  - [[#whereor][whereOr]]
+  - [[#wherenull][whereNull]]
+  - [[#wherenotnull][whereNotNull]]
+  - [[#wherein][whereIn]]
+  - [[#wherebetween][whereBetween]]
+  - [[#randomorder][randomOrder]]
+  - [[#orderby][orderBy]]
+  - [[#limit][limit]]
+  - [[#count][count]]
+  - [[#pagination][pagination]]
+  - [[#relationships][Relationships]]
+- [[#view][View]]
+  - [[#apts-template-engine][apts template engine]]
+  - [[#render][render]]
+- [[#auth-system][Auth system]]
+  - [[#registeruser][registerUser]]
+  - [[#updateuser][updateUser]]
+  - [[#loginusingemail][loginUsingEmail]]
+  - [[#loginusingusername][loginUsingUsername]]
+  - [[#loginusingid][loginUsingId]]
+  - [[#logout][logout]]
+  - [[#check][check]]
+  - [[#checklogin][checkLogin]]
+  - [[#user][user]]
+  - [[#userusingemail][userUsingEmail]]
+  - [[#userusingusername][userUsingUsername]]
+
+* What is apantos
+
+Apantos is a fast and simple framework based on php with security methods and dedicated orm. Modularly
+
+* How create first Apantos project
+
+This project available on composer packagist
+you can easily install by =composer create-project=
+
+#+begin_src sh
+
+composer create-project alishahidi/apantos
+
+#+end_src
+
+for serve project on port *8000*
+
+#+begin_src sh
+
+php -S 127.0.0.1:8000 -t public
+
+#+end_src
+
+** Set tokens
+
+after create project you must set .env =CRYPT_TOKEN= & =TOKEN= variable
+by default =/api/token= url set for get valid token
+using this url 2 time and save gived token into env variables
+
+*recommended remove token api route after saving token from* =/routes/api=
+
+
+* What is framework architecture ?
+
+this framework use mvc architecture
+
+models in *app/Models*
+views in *resources/view*
+controllers in *app/Controllers*
+
+* Directory Structure
+
+#+begin_example
+
+- app
+  - Http
+    - Controllers
+    - Request
+    - Services
+  - Models
+  - Providers
+- bootstrap
+  - /bootstrap.php/
+- config
+  - /app.php/
+  - /database.php/
+  - /image.php/
+  - /mail.php/
+- database
+  - migrations
+- public
+  - /index.php/
+- resources
+  - view
+- routes
+  - /api.php/
+  - /web.php/
+- storage
+  - fonts
+  - images
+- system
+
+#+end_example
+
+* Directory explanation
+
+** app
+
+Important directory contain controllers and request and .... for manage routes handlers and check form input and more
+
+*** Http
+
+Contain web request handlers and services
+
+**** Controllers
+
+Management classes for routes
+
+standard name: =NameController.php=
+
+**** Request
+
+User input checkers
+
+standard name: =NameRequest.php=
+
+**** Services
+
+Refactored classes
+
+standard name: =Name.php=
+
+*** Models
+
+Database Models
+
+standard name =Name.php= *Use singular nouns*
+
+*** Providers
+
+Providers run each request if stored in config file
+
+standard name: =NameProvider.php=
+
+** bootstrap
+
+contain =bootstrap.php= file
+
+The job of this file is to load the framework
+
+** public
+
+this direcotry serve as root directory
+
+every request must be redirect to =index.php= file
+
+** resources
+
+contain view direcotry
+
+*** view
+
+contain views direcotry & php file
+
+standard name for use apts template engine: =view.apts.php=
+standard name for normal use without template engine: =view.php=
+
+** routes
+
+*** web.php
+
+for web request routes
+
+*** api.php
+
+for api request routes
+
+** storage
+
+for in project files
+ex: files used for packages
+
+** system
+
+kernel of framework
+
+* Routing system
+
+all routes available in *routes/{web, api}.php* file
+
+** How create route
+
+*** Note
+
+web route start from */*
+api routes start from */api*
+
+*** Argvs
+
+1. url
+2. Controller with namespace & class function name after @
+3. route name
+
+*** Get
+
+#+begin_src php
+
+Route::get('/', "Home\HomeController@index", 'home.index');
+
+#+end_src
+
+*** Post
+
+#+begin_src php
+
+Route::post('/login', "Auth\LoginController@login", 'auth.login');
+
+#+end_src
+
+*** Put
+
+#+begin_src php
+
+Route::put('/admin/article/update/{id}', "Admin\ArticleController@update", 'admin.article.update');
+
+#+end_src
+
+*** Delete
+
+#+begin_src php
+
+Route::delete('/admin/article/delete/{id}', "Admin\ArticleController@destroy",'admin.article.delete');
+
+#+end_src
+
+
+* Controllers
+
+controllers called by routing system
+
+controllers must be set in =Route= method
+
+create your Controllers in *app/Http/Controller* like this
+
+#+begin_src php
+
+namespace App\Http\Controllers\Home;
+
+use App\Http\Controllers\Controller;
+
+class HomeController extends Controller
+{
+    public function index()
+    {
+        return "Hi";
+    }
+}
+
+#+end_src
+
+for use this example you must set Route for called index method in HomeController
+
+#+begin_src php
+
+Route::get('/', "Home\HomeController@index", 'home.index');
+
+#+end_src
+
+now if open */* url in your browser you can see "Hi" message;
+
+* Model
+
+create your models in *app/Models* like this
+
+#+begin_src php
+
+namespace App\Models;
+
+use System\Database\ORM\Model;
+use System\Database\Traits\HasSoftDelete;
+
+class User extends Model
+{
+    use HasSoftDelete;
+
+    protected $table = 'users';
+
+    protected $fillable = ['name', 'email', 'password', 'avatar', 'permissions', 'bio'];
+
+    protected $casts = ['permission' => 'arrray']
+}
+
+#+end_src
+
+use *Use singular nouns* for Model name and set full name of table in =protected $table=
+
+you must set fillable table column in =protected $fillable=
+id, create_at, updated_at, deleted_at exist by default in fillables
+
+*casts* can convert arrays to safe string for stored in database and can convert string to array when you get record from database
+
+* Orm
+
+** Example tables
+
+*** users
+
+| id | username | password | phone_number |
+|----+----------+----------+--------------|
+|  1 | ali      | test     |    +11843019 |
+|  2 | alex     | test     |   +32095u023 |
+|  3 | pop      | test     |     +3925253 |
+
+*** categories
+
+| id | name  |
+|----+-------|
+|  1 | linux |
+|  2 | emacs |
+|  3 | php   |
+
+*** tags
+
+| id | name  |
+|----+-------|
+|  1 | linux |
+|  2 | emacs |
+|  3 | php   |
+|  4 | json  |
+
+*** posts
+
+| id | title         | cat_id | description                  |
+|----+---------------+--------+------------------------------|
+|  1 | post number 1 |      1 | description of post number 1 |
+|  2 | post 2        |      1 | description of post number 2 |
+|  3 | post number 3 |      2 | description of post number 3 |
+|  4 | post 4        |      3 | description of post number 4 |
+
+*** post_tag
+
+| id | post_id | tag_1 |
+|----+---------+-------|
+|  1 |       1 |     1 |
+|  2 |       1 |     2 |
+|  3 |       2 |     1 |
+|  4 |       2 |     3 |
+
+*** comments
+
+| id | user_id | post_id | comment   |
+|----+---------+---------+-----------|
+|  1 |       1 |       2 | comment 1 |
+|  2 |       2 |       2 | comment 2 |
+|  3 |       1 |       1 | comment 3 |
+
+** create
+
+add record
+
+*** argvs
+1. values:array
+
+*** use
+
+#+begin_src php
+
+$user = User::create([
+    'username' => 'ali',
+    'password' => 'test',
+    'phone_number' => '+319021243'
+]);
+
+$insertId = $user->insertId;
+
+#+end_src
+
+or
+
+#+begin_src php
+
+$user = new User();
+$user->username = 'ali';
+$user->password = 'test';
+$user->phone_number = '+30231234401';
+$user->save();
+
+#+end_src
+
+** update
+
+update record
+
+*** argvs
+
+1. values:array => with primary id
+
+*** use
+
+#+begin_src php
+
+$user = User::update([
+    'id' => 1,
+    'username' => 'alishahidi'
+]);
+
+// change ali username to alishahidi
+
+#+end_src
+
+or
+
+#+begin_src php
+
+$user = User::find(1);
+$user->username = 'alishahidi';
+$user->save();
+
+#+end_src
+
+** delete
+
+delete record
+
+*** argvs
+1. primary id
+
+*** use
+
+#+begin_src php
+
+User::delete(1);
+
+#+end_src
+
+** all
+
+give all records
+
+*** use
+
+#+begin_src php
+
+$users = User::all();
+foreach($users as $user)
+    echo $user->useranem;
+
+// output
+
+    // ali
+    // alex
+    // pop
+
+#+end_src
+
+** find
+
+give user where id = $id
+
+*** argvs
+
+1. primary id
+
+*** use
+
+#+begin_src php
+
+$user = User::find(1);
+$username = $user->username; // return ali
+
+#+end_src
+
+** where
+
+add where condition in query
+
+*** argvs
+
+if pass 2 argument it set operatino to =
+1. attribute
+2. value
+
+if pass 3 argument it get operation from argument 2 and get value from argument 3
+1. attribute
+2. operatino
+3. value
+
+*** use
+
+#+begin_src php
+
+// get first record
+$post = Post::where('title', 'post number 1')->get()[0];
+$title = $post->title; // return "post number 1"
+
+#+end_src
+
+or
+
+#+begin_src php
+
+// return all record contain "number" in title
+$posts = Post::where('title', 'LIKE', "%number%")->get();
+foreach($posts as $post)
+    echo $post->title
+
+// output
+
+    // post number 1
+    // post number 3
+
+#+end_src
+
+** whereOr
+
+like =where= but with *OR* operation
+
+** whereNull
+
+*** argvs
+
+1. attribute
+
+*** use
+
+#+begin_src php
+
+// get records if cat_id is null
+$posts = Post::whereNull('cat_id')->get();
+
+#+end_src
+
+** whereNotNull
+
+*** argvs
+
+1. attribute
+
+*** use
+
+#+begin_src php
+
+// get records if cat_id is not null | is set
+$posts = Post::whereNotNull('cat_id')->get();
+
+#+end_src
+
+** whereIn
+
+*** argvs
+
+1. attribute
+2. values:array
+
+*** use
+
+#+begin_src php
+
+// get posts recotds if cat_id in 1, 2, 3
+$posts = Post::whereIn('cat_id', [1, 2, 3])->get();
+
+#+end_src
+
+** whereBetween
+
+*** argvs
+
+1. attribute
+2. from
+3. to
+
+*** use
+
+#+begin_src php
+
+// get records if id between 1..3
+$posts = Post::whereBetween('id', 1, 3)->get();
+
+#+end_src
+
+** randomOrder
+
+  randomize records order
+
+*** argvs
+
+1. expression
+
+*** use
+
+#+begin_src php
+
+$posts = Post::randomOrder('DESC')->get();
+
+#+end_src
+
+** orderBy
+
+*** argvs
+
+1. attribute
+2. expression
+
+*** use
+
+#+begin_src php
+
+$posts = Post:orderBy('created_at', 'DESC')->get();
+
+#+end_src
+
+** limit
+
+*** argvs
+
+1. from
+2. number
+
+*** use
+
+#+begin_src php
+
+// get first 3 records
+$posts = Post::limit(0, 3)->get();
+
+#+end_src
+
+** count
+
+*** use
+
+#+begin_src php
+
+// get cound of records
+$postsCount = Post::count(); // return 4
+
+#+end_src
+
+** pagination
+
+*** argvs
+
+1. perpage
+
+*** use
+
+#+begin_src php
+
+// auto convert page_id with $_GET['_pageid']
+$posts = Post::pagination(3);
+
+#+end_src
+
+** Relationships
+
+*** hasOne
+
+**** argvs
+
+1. model class name
+2. foreign key
+3. local key
+
+**** use
+
+#+begin_src php
+
+$user = Post::hasOne(User::class, 'user_id', 'id');
+
+#+end_src
+
+
+*** hasMany
+
+**** argvs
+
+1. model class name
+2. foreign key
+3. local key
+
+**** use
+
+#+begin_src php
+
+$comments = Post::hasMany(Comment::class, 'post_id', 'id')->get();
+
+#+end_src
+
+*** belongsTo
+
+**** argvs
+
+1. model class name
+2. foreign key
+3. local key
+
+**** use
+
+#+begin_src php
+
+$user = Post::belongTo(User::class, 'user_id', 'id')->get();
+
+#+end_src
+
+*** belongsToMany
+
+**** argvs
+
+1. model class name
+2. pivot table
+3. local key
+4. pivot foreign key
+5. pivot other foreign key
+6. foreign key
+
+**** use
+
+#+begin_src php
+
+$tags = Post::belongsToMany(Tag::class, 'article_tag', 'id', 'post_id', 'tag_id', 'id')->get();
+// |      *----------------------------------------------*        |         |       |
+// |      *-------------------------------------------------------*         |       |
+// *------------------------------------------------------------------------*       |
+// *--------------------------------------------------------------------------------*
+
+#+end_src
+
+* View
+
+all views create in *resources/view*
+
+** apts template engine
+
+# maby replace twig template engine in next versions
+
+#+begin_example
+
+- resources
+  - view
+    - home
+      - layouts
+        - master.apts.php
+        - head-tag.apts.php
+      - index.apts.php
+
+#+end_example
+
+*** home > layouts > master.apts.php
+
+#+begin_src html
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    @include('home.layouts.head-tag')
+    @yield('title')
+    @yield('head-tag')
+</head>
+
+<body>
+    @yield('content')
+</body>
+
+</html>
+
+#+end_src
+
+*** home > layouts > head-tag.apts.php
+
+#+begin_src html
+
+<meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+#+end_src
+
+*** home > index.apts.php
+
+#+begin_src html
+
+@extends('app.layouts.app')
+
+@section('head-tag')
+
+<title>Apantos project</title>
+
+@endsection
+
+@section('content')
+
+<h2>Welcome to apantos project</h2>
+
+@endsection
+
+#+end_src
+
+** render
+
+replace */* with *.* in your path
+path start in *resources/view*
+
+#+begin_src php
+
+view('home.index');
+
+#+end_src
+
+or
+
+#+begin_src php
+
+$message = 'Send message to view';
+view('home.index', compact('message'));
+
+#+end_src
+
+*** example using in controller
+
+#+begin_src php
+
+namespace App\Http\Controllers\Home;
+
+use App\Http\Controllers\Controller;
+
+class HomeController extends Controller
+{
+    public function index()
+    {
+        $message = 'Send message to view';
+        return view('home.index', compact('message'));
+    }
+}
+
+#+end_src
+
+* Auth system
+
+auth using *User* mdoel by default
+
+** registerUser
+
+*** argvs
+
+1. values:array
+2. password input name
+3. encrypt input name:array
+
+*** use
+
+#+begin_src php
+
+$inputs = [
+    'username' => 'alishahidi',
+    'password' => 'decoded-secret-from-form',
+    'phone_number' => '+13924324'
+    'secret' => 'top secret'
+];
+
+Auth::storeUser($inputs, 'password', ['secret']);
+
+#+end_src
+
+** updateUser
+
+*** argvs
+
+1. values:array
+2. allowed inputs:key=>value array
+3. password input name
+4. encrypt input name:array
+
+*** use
+
+#+begin_src php
+
+$inputs = [
+    'id' => 1,
+    'username' => 'ali',
+    'password' => 'decoded-secret-from-form',
+];
+
+Auth::updateUser($inputs, ['id', 'username', 'password'], 'password');
+
+#+end_src
+
+** loginUsingEmail
+
+*** argvs
+
+1. email
+2. decoded password
+3. no user exist error message (opt)
+4. password wrong error message (opt)
+5. remember user (opt)
+6. user cookie validate time (opt)
+
+*** use
+
+#+begin_src php
+
+Auth::loginEmailUsername('test@test.org', 'secret', "Username wrong.", "Password wrong", true, 4 * 24 * 60 * 60);
+
+#+end_src
+
+** loginUsingUsername
+
+like =loginUsingEmail= but send username between email in first argument
+
+** loginUsingId
+
+*** argvs
+
+1. id
+
+*** use
+
+#+begin_src php
+
+Auth::loginUsingId(1);
+
+#+end_src
+
+** logout
+
+*** use
+
+#+begin_src php
+
+Auth::logout();
+
+#+end_src
+
+** check
+
+check user login => redirect to *auth.login* route name if not login
+
+*** use
+
+#+begin_src php
+
+Auth::check();
+
+#+end_src
+
+** checkLogin
+
+check user login => return true/false
+
+*** use
+
+#+begin_src php
+
+$isLogin = Auth::checkLogin();
+
+#+end_src
+
+** user
+
+return user if login
+
+*** use
+
+#+begin_src php
+
+$user = Auth::user();
+
+#+end_src
+
+** userUsingEmail
+
+*** use
+
+#+begin_src php
+
+$user = Auth::userUsingEmail('test@test.org');
+
+#+end_src
+
+** userUsingUsername
+
+*** use
+
+#+begin_src php
+
+$user = Auth::userUsingUsername('ali');
+
+#+end_src

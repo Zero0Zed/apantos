@@ -2,109 +2,66 @@
 
 namespace System\Router;
 
-use ReflectionMethod;
+use stdClass;
 use System\Config\Config;
 
-class Routing
+class Routing extends stdClass
 {
+    private $current_route;
 
-  private $current_route;
-  private $method_field;
-  private $routes;
-  private $values = [];
+    private $method_field;
 
-  public function __construct()
-  {
-    $this->current_route = explode('/', trim(Config::get('app.CURRENT_ROUTE'), '/'));
-    $this->method_field = $this->methodField();
-    global $routes;
-    $this->routes = $routes;
-  }
+    private $routes;
 
-  public function run()
-  {
+    private $match;
 
-    $match = $this->matchMethod();
-    if (empty($match)) {
-      $this->error404();
+    public function __construct()
+    {
+        global $routes;
+
+        $this->current_route = explode('/', trim(Config::get('app.CURRENT_ROUTE'), '/'));
+        $this->method_field = $this->methodField();
+        $this->routes = $routes;
     }
 
-    $classPath = str_replace('\\', '/', $match["class"]);
-    $path = Config::get('app.BASE_DIR') . "/app/Http/Controllers/" . $classPath . ".php";
-    if (!file_exists($path)) {
-      $this->error404();
+    private function requestMethod()
+    {
+        return strtolower($_SERVER['REQUEST_METHOD']);
     }
 
-    $class = "\App\Http\Controllers\\" . $match["class"];
-    $object = new $class();
-    if (method_exists($object, $match["method"])) {
-      $reflection = new ReflectionMethod($class, $match["method"]);
-      $parameterCount = $reflection->getNumberOfParameters();
-      if ($parameterCount <= count($this->values)) {
-        call_user_func_array(array($object, $match["method"]), $this->values);
-      } else {
-        $this->error404();
-      }
-    } else {
-      $this->error404();
+    public function methodField()
+    {
+        if ($postMethod = $this->postMethod())
+                return $postMethod;
+
+        return $this->requestMethod();
     }
-  }
 
-  private function matchMethod()
-  {
-    $reservedRoutes = $this->routes[$this->method_field];
-    foreach ($reservedRoutes as $reservedRoute) {
-      if ($this->compare($reservedRoute['url']) === true) {
-        return ["class" => $reservedRoute['class'], "method" => $reservedRoute['method']];
-      } else {
-        $this->values = [];
-      }
+    private function existPostMethod()
+    {
+        return ($this->requestMethod() == 'post' && isset($_POST['_method']));
     }
-    return [];
-  }
 
-  private function compare($reservedRouteUrl)
-  {
-    if (trim($reservedRouteUrl, '/') === '')
-      return trim($this->current_route[0], '/') === '' ? true : false;
-    $reservedRouteUrlArray = explode('/', $reservedRouteUrl);
-    if (sizeof($this->current_route) !== sizeof($reservedRouteUrlArray))
-      return false;
-    foreach ($this->current_route as $key => $currentRouteElement) {
-      $reservedRouteUrlElement = $reservedRouteUrlArray[$key];
-      if (substr($reservedRouteUrlElement, 0, 1) === "{" && substr($reservedRouteUrlElement, -1) === "}") {
-        array_push($this->values, $currentRouteElement);
-      } elseif ($reservedRouteUrlElement !== $currentRouteElement) {
-        return false;
-      }
+    private function postMethod()
+    {
+        if(! $this->existPostMethod()) return;
+
+        $methods = ['put', 'delete'];
+
+        if(in_array($_POST['_method'], $methods)) return $_POST['_method'];
     }
-    return true;
-  }
 
-  public function error404()
-  {
-    $dirSep = DIRECTORY_SEPARATOR;
-    http_response_code(404);
-    include __DIR__ . "{$dirSep}View{$dirSep}404.php";
-    exit;
-  }
+    private function matchMethod()
+    {
+        $reservedRoutes = $this->routes[$this->method_field];
 
-  public function methodField()
-  {
-
-    $method_field = strtolower($_SERVER['REQUEST_METHOD']);
-
-    if ($method_field == 'post') {
-
-      if (isset($_POST['_method'])) {
-
-        if ($_POST['_method'] == 'put') {
-          $method_field = 'put';
-        } elseif ($_POST['_method'] == 'delete') {
-          $method_field = 'delete';
-        }
-      }
+        return (new Find($reservedRoutes, $this->current_route))->handle();
     }
-    return $method_field;
-  }
+
+    public function run()
+    {
+        $this->match = $this->matchMethod();
+
+        (new Controller($this->match))->handle();
+    }
 }

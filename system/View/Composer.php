@@ -2,11 +2,16 @@
 
 namespace System\View;
 
-class Composer
+use stdClass;
+
+class Composer extends stdClass
 {
     private static $instance;
+
     private $vars = [];
+
     private $viewArray = [];
+
     private $registeredViewArray = [];
 
     private function __construct()
@@ -16,11 +21,13 @@ class Composer
 
     private function registerView($name, $callback)
     {
-        if (!is_array($name))
+        if (! is_array($name)) {
             $this->registeredViewArray[$name] = $callback;
-        else
-            foreach ($name as $viewName)
+        } else {
+            foreach ($name as $viewName) {
                 $this->registeredViewArray[$viewName] = $callback;
+            }
+        }
     }
 
     private function setViewArray($viewArray)
@@ -31,13 +38,14 @@ class Composer
     private function getViewVars()
     {
         foreach ($this->viewArray as $view) {
-            if (isset($this->registeredViewArray[str_replace("/", ".", $view)])) {
-                $viewVars = $this->registeredViewArray[str_replace("/", ".", $view)]();
+            if (isset($this->registeredViewArray[str_replace('/', '.', $view)])) {
+                $viewVars = $this->registeredViewArray[str_replace('/', '.', $view)]();
                 foreach ($viewVars as $key => $value) {
                     $this->vars[$key] = $value;
                 }
             }
         }
+
         return $this->vars;
     }
 
@@ -45,22 +53,24 @@ class Composer
     {
         $instance = self::getInstance();
         switch ($name) {
-            case "view":
-                return call_user_func_array([$instance, "registerView"], $arguments);
+            case 'view':
+                return call_user_func_array([$instance, 'registerView'], $arguments);
                 break;
-            case "setViews":
-                return call_user_func_array([$instance, "setViewArray"], $arguments);
+            case 'setViews':
+                return call_user_func_array([$instance, 'setViewArray'], $arguments);
                 break;
-            case "getVars":
-                return call_user_func_array([$instance, "getViewVars"], $arguments);
+            case 'getVars':
+                return call_user_func_array([$instance, 'getViewVars'], $arguments);
                 break;
         }
     }
 
     private static function getInstance()
     {
-        if (empty(self::$instance))
-            self::$instance = new self;
+        if (empty(self::$instance)) {
+            self::$instance = new self();
+        }
+
         return self::$instance;
     }
 }
